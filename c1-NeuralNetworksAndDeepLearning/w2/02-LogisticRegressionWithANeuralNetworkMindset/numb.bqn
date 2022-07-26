@@ -1,5 +1,7 @@
-#Dot ← { 𝕨 +˝∘×⎉1‿∞ 𝕩 }
+# basic bqn, general solution
 #Dot ← +˝∘×⎉1‿∞
+
+# optimized bqn
 #Dot ← {
 #  1≡⊑≠𝕨? ≍+´ (⥊𝕨) × <˘ 𝕩;
 #  1≡1⊑≢𝕩? (≠𝕨)‿1⥊ (+´(⥊𝕩)⊸×)˘𝕨;
@@ -23,18 +25,21 @@ cblasTransOptions←⟨
 #path_blas_lib ← "/usr/local/Cellar/openblas/0.3.20/lib/libopenblasp-r0.3.20.dylib"  # brew package (good)
 path_blas_lib ← "/Users/jra/pks/openblas/lib/libopenblas_haswellp-r0.3.17.dylib"  # compiled locally (best)
 
-p ← (1-˜+`×¬)∘=⟜⊏⊸⊔ " & cblas_dgemm u32 u32 u32 i32 i32 i32 f64 *f64 i32 *f64 i32 f64 &f64 i32"
+p ← @
+#                                   lay tA  tB  m   n   k   α   A    lda B    ldb β   C    ldc
+p ↩ (1-˜+`×¬)∘=⟜⊏⊸⊔ " & cblas_dgemm u32 u32 u32 i32 i32 i32 f64 *f64 i32 *f64 i32 f64 &f64 i32"
 gemm ← path_blas_lib •FFI p
+#                                   lay tA  m   n   α   A    lda x    incx β  y    incy
+p ↩ (1-˜+`×¬)∘=⟜⊏⊸⊔ " & cblas_dgemv u32 u32 i32 i32 f64 *f64 i32 *f64 i32 f64 &f64 i32"
+gemv ← path_blas_lib •FFI p
+
 Cblas_gemm_ab ← {
   a‿b:
   m‿k←≢a ⋄ kx‿n←≢b ⋄ !k≡kx
   c←m‿n⥊0
-  Gemm 101‿111‿111‿m‿n‿k‿1‿a‿k‿b‿n‿0‿c‿n
+  Gemm cblasRowMajor‿cblasNoTrans‿cblasNoTrans‿m‿n‿k‿1‿a‿k‿b‿n‿0‿c‿n
 }
 
-#                                   lay tA  m   n   α   A    lda x    incx β  y    incy
-p ↩ (1-˜+`×¬)∘=⟜⊏⊸⊔ " & cblas_dgemv u32 u32 i32 i32 f64 *f64 i32 *f64 i32 f64 &f64 i32"
-gemv ← path_blas_lib •FFI p
 Cblas_gemv_axpby ← {
   trans‿a‿x‿beta‿y:
   ctrans ← trans⊑cblasTransOptions  # 0-no trans, 1-trans
