@@ -13,18 +13,22 @@ classes ← ReadTestListClasses ⟨⟩
 
 index ← 10
 •Out "y = "∾(•Repr index⊑train_set_y)∾", it's a '"∾((index⊑train_set_y)⊑classes)∾"' picture."
-# write image to file:
-# ppm ex.
-# 4 8  4 columns, 8 rows
-# 255  max value
-# data read in rows
-#header_ppm ← "P6
-#64 64
-#255
-#"
-#image_ppm ← @ +¨ ⥊ index ⊏ train_set_x_orig
-#bytes_ppm ← header_ppm ∾ image_ppm
-#"z.ppm" •file.Bytes bytes_ppm
+ImageWrite ← {
+  # write image to file:
+  # ppm ex.
+  # 4 8  4 columns, 8 rows
+  # 255  max value
+  # data read in rows
+  rows‿cols‿ignore ← ≢𝕩  # ie 64 × 64 × 3
+  header_ppm ← "P6
+"∾(•Repr cols)∾" "∾(•Repr rows)∾"
+255
+"
+  image_ppm ← @ +¨ ⥊ 𝕩
+  bytes_ppm ← header_ppm ∾ image_ppm
+  𝕨 •file.Bytes bytes_ppm
+}
+("img-train"∾(•Repr index)∾".ppm") ImageWrite index ⊏ train_set_x_orig
 
 m_train ← ≠train_set_x_orig
 m_test ← ≠test_set_x_orig
