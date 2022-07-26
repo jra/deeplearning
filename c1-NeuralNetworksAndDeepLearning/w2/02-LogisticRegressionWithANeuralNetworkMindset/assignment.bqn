@@ -145,7 +145,6 @@ Model ← {
   # Predict test/train set examples (≈ 2 lines of code)
   y_prediction_test ← Predict w‿b‿x_test
   y_prediction_train ← Predict w‿b‿x_train
-  ### END CODE HERE ###
 
   # Print train/test Errors
   •Out "train accuracy: "∾(•Repr ⊑100-100×(+´÷≠)˘|y_prediction_train-y_train)∾"%"
@@ -167,6 +166,30 @@ num_iterations‿learning_rate‿print_cost ↩ 2000‿0.005‿0
 train_set_y ↩ 1‿∘⥊train_set_y
 test_set_y ↩ 1‿∘⥊test_set_y
 d ← Model train_set_x‿train_set_y‿test_set_x‿test_set_y‿num_iterations‿learning_rate‿print_cost
-•Out "b "∾•Fmt 4⊑d
-•Out "costs "∾•Fmt ⊑d
+#•Out "b "∾•Fmt 4⊑d
+#•Out "costs "∾•Fmt ⊑d
 #•Out "costs "∾•Fmt ¯1⊑⊑d
+
+index ↩ 25
+("img-test"∾(•Repr index)∾".ppm") ImageWrite index ⊏ test_set_x_orig
+•Show ≢test_set_y
+•Show •Repr test_set_y
+•Show ≢1⊑d
+•Out "y = "∾(•Repr (0‿index)⊑test_set_y)∾", you predicted that it is a """∾(•Repr ((0‿index)⊑1⊑d)⊑classes)∾""" picture."
+
+#costs_csv_lines ← "iter,cost"∾•Repr¨
+costs ↩ ⊑d
+•Show costs
+•Show ≢costs
+•Show ≠costs
+iters ← 100×↕≠costs
+•Show iters
+•Show ≢iters
+•Show ≠iters
+•Show ⍉iters≍costs
+ics ← ⍉iters≍costs
+•Show {(•Repr 0⊑𝕩)∾","∾•Repr 1⊑𝕩}¨<˘ics
+
+
+"costs.csv" •file.Lines ⟨"iters,cost"⟩∾{(•Repr 0⊑𝕩)∾","∾•Repr 1⊑𝕩}¨<˘ics
+•SH "python"‿"chart_costs.py"
