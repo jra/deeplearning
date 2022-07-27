@@ -231,3 +231,16 @@ cat2 ← Norm255 ReadResizeImage path_image‿64‿64‿imgtemp
 ("cat2.ppm") ImageWrite cat2
 c2y ← Sigmoid modb + (⍉modw) numb.Dot (64×64×3)‿1⥊cat2
 •Out •Repr c2y
+
+learning_rates ← 10⋆-2+↕3
+ds ← {Model train_set_x‿train_set_y‿test_set_x‿test_set_y‿1500‿𝕩‿0}¨learning_rates
+
+iters ↩ ⋈100×↕≠⊑⊑ds
+costs ↩ ⊑¨ds
+•Show iters
+•Show costs
+ics ↩ ⍉>iters∾costs
+•Show ≢ics
+•Show ics
+"costs_3lrs.csv" •file.Lines ⟨"iters,0.01,0.001,0.0001"⟩∾{(•Repr 0⊑𝕩)∾","∾(•Repr 1⊑𝕩)∾","∾(•Repr 2⊑𝕩)∾","∾(•Repr 3⊑𝕩)}¨<˘ics
+•SH "python"‿"chart_costs_3lrs.py"
