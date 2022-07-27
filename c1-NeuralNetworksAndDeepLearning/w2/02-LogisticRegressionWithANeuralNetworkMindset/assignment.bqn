@@ -24,7 +24,7 @@ ImageWrite ← {
 "∾(•Repr cols)∾" "∾(•Repr rows)∾"
 255
 "
-  image_ppm ← @ +¨ ⥊ 𝕩
+  image_ppm ← @⊸+¨ ⥊𝕩
   bytes_ppm ← header_ppm ∾ image_ppm
   𝕨 •file.Bytes bytes_ppm
 }
@@ -193,3 +193,41 @@ ics ← ⍉iters≍costs
 
 "costs.csv" •file.Lines ⟨"iters,cost"⟩∾{(•Repr 0⊑𝕩)∾","∾•Repr 1⊑𝕩}¨<˘ics
 •SH "python"‿"chart_costs.py"
+
+path_libmagickwand ← "/Users/jra/prj/coursera/deeplearning/c1-NeuralNetworksAndDeepLearning/w2/02-LogisticRegressionWithANeuralNetworkMindset/libmagickwand.dylib"
+readResizeImage ← path_libmagickwand •FFI "&"‿"read_resize_image"‿"*i32:c8"‿"u32"‿"u32"‿"&f64"
+
+Norm255 ← {
+  mn ← ⌊´⥊𝕩
+  mx ← ⌈´⥊𝕩
+  0⌈¨255⌊¨⌊¨256×÷⟜(mx-mn)-⟜mn𝕩
+}
+
+modw ← 3⊑d
+modb ← 4⊑d
+•Out •Repr ≢modw
+•Out •Repr modb
+
+imgtemp ← 64‿64‿3⥊0
+
+path_image ← "/Users/jra/Desktop/jra_photo.jpeg"∾@
+hum1 ← Norm255 ReadResizeImage path_image‿64‿64‿imgtemp
+("hum1.ppm") ImageWrite hum1
+hy ← Sigmoid modb + (⍉modw) numb.Dot (64×64×3)‿1⥊hum1
+•Out •Repr hy
+
+path_image ↩ "/Users/jra/Desktop/cat1.jpeg"∾@
+cat1 ← Norm255 ReadResizeImage path_image‿64‿64‿imgtemp
+•Show •Repr 10↑⊏cat1
+•Show •Repr ⌈´⥊cat1
+•Show •Repr ⌊´⥊cat1
+•Show •Repr (+´÷≠)⥊cat1
+("cat1.ppm") ImageWrite cat1
+c1y ← Sigmoid modb + (⍉modw) numb.Dot (64×64×3)‿1⥊cat1
+•Out •Repr c1y
+
+path_image ↩ "/Users/jra/Desktop/cat2.jpeg"∾@
+cat2 ← Norm255 ReadResizeImage path_image‿64‿64‿imgtemp
+("cat2.ppm") ImageWrite cat2
+c2y ← Sigmoid modb + (⍉modw) numb.Dot (64×64×3)‿1⥊cat2
+•Out •Repr c2y
