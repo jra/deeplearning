@@ -12,6 +12,7 @@ scipy = "*"
 plotly = "*"
 kaleido = "*"
 pandas = "*"
+sklearn = "*"
 
 [dev-packages]
 
