@@ -125,7 +125,12 @@ InitializeParameters ← {
   #! n_y‿n_h=≢w2
   #! n_y‿1=≢b2
 
-  w1‿b1‿w2‿b2
+  {
+    w1⇐w1
+    b1⇐b1
+    w2⇐w2
+    b2⇐b2
+  }
 }
 
 InitializeParametersTestCase ← {
@@ -137,7 +142,70 @@ InitializeParametersTestCase ← {
 n_x‿n_h‿n_y ↩ InitializeParametersTestCase @
 
 parameters ← InitializeParameters n_x‿n_h‿n_y
-•Out "W1 = "∾•Repr 0⊑parameters
-•Out "b1 = "∾•Repr 1⊑parameters
-•Out "W2 = "∾•Repr 2⊑parameters
-•Out "b2 = "∾•Repr 3⊑parameters
+#•Out "W1 = "∾•Repr 0⊑parameters
+#•Out "b1 = "∾•Repr 1⊑parameters
+#•Out "W2 = "∾•Repr 2⊑parameters
+#•Out "b2 = "∾•Repr 3⊑parameters
+
+•Out "W1 = "∾•Repr parameters.w1
+•Out "b1 = "∾•Repr parameters.b1
+•Out "W2 = "∾•Repr parameters.w2
+•Out "b2 = "∾•Repr parameters.b2
+
+Sigmoid ← { ÷1+⋆-𝕩 }
+TanH ← { (1-˜⋆2×𝕩) ÷ 1+⋆2×𝕩 }
+#TanH ← { •math.tanh }
+#ReLU ← { 𝕩⌈0 }
+#ReLULeaky ← { 𝕩⌈0.01×𝕩 }
+
+⟨Dot⟩ ← •Import "../../w2/02-LogisticRegressionWithANeuralNetworkMindset/numb.bqn"
+ForwardPropagation ← {
+  x‿⟨w1, b1, w2, b2⟩:
+  {
+    #z1⇐(⥊b1) +⎉0‿1 w1 Dot x  # TODO better way to broadcast?
+    z1⇐(⥊b1) + w1 Dot x  # TODO better way to broadcast?
+    a1⇐Tanh¨ z1
+    z2⇐(⥊b2) + w2 Dot a1
+    a2⇐Sigmoid¨ z2
+  }
+}
+
+ForwardPropagationTestCase ← {
+  ·:
+  #rng ← •MakeRand 1
+  #x_assess ← {𝕩 Normal 0‿1}¨ 2‿3 rng.Range 0
+  x_assess ← [[ 1.62434536, -0.61175641, -0.52817175]
+              [-1.07296862,  0.86540763, -2.3015387 ]]
+  #b1 ← {𝕩 Normal 0‿1}¨ 4‿1 rng.Range 0
+  b1 ← [[ 1.74481176]
+        [-0.7612069 ]
+        [ 0.3190391 ]
+        [-0.24937038]]
+  b2 ← 1‿1⥊¯1.3
+  parameters ← {
+    w1⇐[[-0.00416758, -0.00056267]
+        [-0.02136196,  0.01640271]
+        [-0.01793436, -0.00841747]
+        [ 0.00502881, -0.01245288]]
+    b1⇐b1
+    w2⇐[[-0.01057952, -0.00909008, 0.00551454, 0.02292208]]
+    b2⇐b2
+  }
+  x_assess‿parameters
+}
+
+x_assess‿parameters ↩ ForwardPropagationTestCase @
+
+•Show x_assess
+•Out "w1"
+•Show parameters.w1
+•Out "b1"
+•Show parameters.b1
+•Out "w2"
+•Show parameters.w2
+•Out "b2"
+•Show parameters.b2
+
+cache ← ForwardPropagation x_assess‿parameters
+Mean ← { (+´⥊𝕩) ÷ (≠⥊𝕩) }  # TODO better way?
+•Show (Mean cache.z1)‿(Mean cache.a1)‿(Mean cache.z2)‿(Mean cache.a2)
