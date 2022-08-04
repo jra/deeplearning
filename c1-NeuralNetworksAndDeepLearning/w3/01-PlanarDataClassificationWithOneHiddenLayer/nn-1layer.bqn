@@ -55,27 +55,11 @@ LayerSizes ⇐ {
 InitializeParameters ⇐ {
   n_x‿n_h‿n_y:
   rng ← •MakeRand 2
-
-  w1 ← 0.01 × {𝕩 Normal 0‿1}¨ n_h‿n_x rng.Range 0
-  b1 ← n_h‿1⥊0
-  w2 ← 0.01 × {𝕩 Normal 0‿1}¨ n_y‿n_h rng.Range 0
-  b2 ← n_y‿1⥊0
-
-  •Show ≢w1
-  •Show ≢b1
-  •Show ≢w2
-  •Show ≢b2
-
-  #! n_h‿n_x=≢w1
-  #! n_h‿1=≢b1
-  #! n_y‿n_h=≢w2
-  #! n_y‿1=≢b2
-
-  {
-    w1⇐w1
-    b1⇐b1
-    w2⇐w2
-    b2⇐b2
+  cache ← {
+    w1 ⇐ 0.01 × {𝕩 Normal 0‿1}¨ n_h‿n_x rng.Range 0
+    b1 ⇐ n_h‿1⥊0
+    w2 ⇐ 0.01 × {𝕩 Normal 0‿1}¨ n_y‿n_h rng.Range 0
+    b2 ⇐ n_y‿1⥊0
   }
 }
 
@@ -100,7 +84,7 @@ ForwardPropagation ⇐ {
 ComputeCost ⇐ {
   a2‿y‿⟨w1, b1, w2, b2⟩:
   m ← 1⊑≢y
-  -m÷˜+´⥊(y×⋆⁼a2)+(¬y)×⋆⁼¬a2
+  cost ← -m÷˜+´⥊(y×⋆⁼a2)+(¬y)×⋆⁼¬a2
 }
 
 BackwardPropagation ⇐ {
@@ -112,7 +96,7 @@ BackwardPropagation ⇐ {
   dz1 ← ((⍉w2) Dot dz2) × ¬a1⋆2
   dw1 ← m÷˜ dz1 Dot ⍉x
   db1 ← m÷˜ ⍉ ≍ +´˘ dz1
-  {
+  grads ← {
     dw1 ⇐ dw1
     db1 ⇐ db1
     dw2 ⇐ dw2
@@ -122,15 +106,11 @@ BackwardPropagation ⇐ {
 
 UpdateParameters ⇐ {
   ⟨w1,b1,w2,b2⟩‿⟨dw1,db1,dw2,db2⟩‿learning_rate:
-  w1 ↩ w1 - learning_rate × dw1
-  b1 ↩ b1 - learning_rate × db1
-  w2 ↩ w2 - learning_rate × dw2
-  b2 ↩ b2 - learning_rate × db2
-  {
-    w1 ⇐ w1
-    b1 ⇐ b1
-    w2 ⇐ w2
-    b2 ⇐ b2
+  parameters ← {
+    w1 ⇐ w1 - learning_rate × dw1
+    b1 ⇐ b1 - learning_rate × db1
+    w2 ⇐ w2 - learning_rate × dw2
+    b2 ⇐ b2 - learning_rate × db2
   }
 }
 
