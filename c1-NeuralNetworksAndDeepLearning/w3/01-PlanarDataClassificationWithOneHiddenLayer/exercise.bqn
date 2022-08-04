@@ -62,19 +62,22 @@ LoadPlanarDataset ← {
     (⍉x0≍x1)‿y
   }¨0‿1
   x ← ∾⊑¨xy
-  y ← ∾1⊸⊑¨xy
+  y ← ⍉≍∾1⊸⊑¨xy
   ⍉¨x‿y
 }
 
-xy ← LoadPlanarDataset @
-•Show ≢⊑xy
-•Show ≢1⊑xy
+x‿y ← LoadPlanarDataset @
+#•Show ≢⊑xy
+#•Show ≢1⊑xy
 
-ds ← ⍉(⊑xy)∾1⊑xy
+#ds ← ⍉(⊑xy)∾1⊑xy
+ds ← (⍉x)∾˘⍉y
+•Out "ds:"
+•Show ≢ds
 "dataset.csv" •file.Lines ⟨"x0,x1,y"⟩∾{(FmtNeg 0⊑𝕩)∾","∾(FmtNeg 1⊑𝕩)∾","∾(FmtNeg 2⊑𝕩)}¨<˘ds
 
-x ← ⊑xy
-y ← 1⊑xy
+#x ← ⊑xy
+#y ← 1⊑xy
 shape_x ← ≢x
 shape_y ← ≢y
 m ← ≠y
@@ -82,7 +85,7 @@ m ← ≠y
 •Out "The shape of y is: "∾•Repr shape_y
 •Out "I have m = "∾(•Repr m)∾" training examples!"
 
-LayerSizes ← {
+LayerSizes ⇐ {
   x‿y:
   n_x ← ⊑≢x
   n_h ← 4
@@ -90,21 +93,8 @@ LayerSizes ← {
   n_x‿n_h‿n_y
 }
 
-LayerSizesTesCase ← {
-  ·:
-  rng ← •MakeRand 1
-  x_assess ← 5‿3 rng.Range 0
-  y_assess ← 2‿3 rng.Range 0
-  x_assess‿y_assess
-}
-
 n_x‿n_h‿n_y ← 3⥊@
-
-x_assess‿y_assess ← LayerSizesTesCase @
-n_x‿n_h‿n_y ↩ LayerSizes x_assess‿y_assess
-•Out "The size of the input layer is: n_x = "∾ •Repr n_x
-•Out "The size of the hidden layer is: n_h = "∾ •Repr n_h
-•Out "The size of the output layer is: n_y = "∾ •Repr n_y
+x_assess‿y_assess ← 2⥊@
 
 InitializeParameters ← {
   n_x‿n_h‿n_y:
@@ -246,13 +236,14 @@ BackwardPropagation ← {
   dz2 ← a2-y
   dw2 ← m÷˜ dz2 Dot ⍉a1
   #db2 ← m÷˜ +´ ⥊dz2
-  •Out "dz2:"
-  •Show dz2
-  •Show +˘dz2
+  #•Out "dz2:"
+  #•Show dz2
+  #•Show +˘dz2
   db2 ← m÷˜ ≍ +´˘ dz2
   dz1 ← ((⍉w2) Dot dz2) × ¬a1⋆2
+  #•Out "dz1:"∾•Repr ≢dz1
   dw1 ← m÷˜ dz1 Dot ⍉x
-  db1 ← m÷˜ ≍ +´˘ dz1
+  db1 ← m÷˜ ⍉ ≍ +´˘ dz1
   {
     dw1 ⇐ dw1
     db1 ⇐ db1
@@ -304,8 +295,14 @@ grads ← BackwardPropagation parameters‿cache‿x_assess‿y_assess
 
 UpdateParameters ← {
   ⟨w1,b1,w2,b2⟩‿⟨dw1,db1,dw2,db2⟩‿learning_rate:
-  #⟨w1,b1,w2,b2⟩‿⟨dw1,db1,dw2,db2⟩:
-  #learning_rate ← 1.2
+  #•Out "w1:"∾•Repr ≢w1
+  #•Out "b1:"∾•Repr ≢b1
+  #•Out "w2:"∾•Repr ≢w2
+  #•Out "b2:"∾•Repr ≢b2
+  #•Out "dw1:"∾•Repr ≢dw1
+  #•Out "db1:"∾•Repr ≢db1
+  #•Out "dw2:"∾•Repr ≢dw2
+  #•Out "db2:"∾•Repr ≢db2
   w1 ↩ w1 - learning_rate × dw1
   b1 ↩ b1 - learning_rate × db1
   w2 ↩ w2 - learning_rate × dw2
@@ -357,3 +354,88 @@ parameters ↩ UpdateParameters parameters‿grads‿1.2
 •Out "b1: "∾•Repr parameters.b1
 •Out "w2: "∾•Repr parameters.w2
 •Out "b2: "∾•Repr parameters.b2
+
+NNModel ← {
+  x‿y‿n_h‿learning_rate‿num_iterations‿print_cost:
+  n_x‿·‿n_y ← LayerSizes x‿y
+  cache‿cost‿grads ← @‿@‿@
+  parameters ← InitializeParameters n_x‿n_h‿n_y
+  i ← 0
+  {𝕤
+    cache ↩ ForwardPropagation x‿parameters
+    cost ↩ ComputeCost cache.a2‿y‿parameters
+    grads ↩ BackwardPropagation parameters‿cache‿x‿y
+    parameters ↩ UpdateParameters parameters‿grads‿learning_rate
+    {𝕤
+      •Out "Costs after iteration "∾(•Repr i)∾": "∾•Repr cost
+    }⍟(print_cost ∧ 0=1000|i) @
+    i +↩ 1
+  }⍟num_iterations @
+  parameters
+}
+
+NNModelTestCase ← {𝕤
+  x_assess ← [[ 1.62434536, -0.61175641, -0.52817175]
+              [-1.07296862,  0.86540763, -2.3015387 ]]
+  y_assess ← [[1, 0, 1]]
+  x_assess‿y_assess
+}
+
+x_assess‿y_assess ↩ NNModelTestCase @
+
+•Out "x_assess = "
+•Show x_assess
+•Out "y_assess = "
+•Show y_assess
+
+parameters ↩ NNModel x_assess‿y_assess‿4‿1.02‿10000‿1
+
+•Out "w1 = "
+•Show parameters.w1
+•Out "b1 = "
+•Show parameters.b1
+•Out "w2 = "
+•Show parameters.w2
+•Out "b2 = "
+•Show parameters.b2
+
+Predict ← {
+  parameters‿x:
+  ⟨a2⟩ ← ForwardPropagation x‿parameters
+  predictions ← a2 > 0.5
+  #predictions
+}
+
+PredictTestCase ← {𝕤
+  parameters ← {
+    w1 ⇐ [[-0.00615039,  0.0169021 ]
+          [-0.02311792,  0.03137121]
+          [-0.0169217 , -0.01752545]
+          [ 0.00935436, -0.05018221]]
+    b1 ⇐ [[-8.97523455e¯07]
+          [ 8.15562092e¯06]
+          [ 6.04810633e¯07]
+          [-2.54560700e¯06]]
+    w2 ⇐ [[-0.0104319 , -0.04019007,  0.01607211,  0.04440255]]
+    b2 ⇐ [[9.14954378e¯05]]
+  }
+  x_assess ← [[ 1.62434536, -0.61175641, -0.52817175]
+              [-1.07296862,  0.86540763, -2.3015387 ]]
+  parameters‿x_assess
+}
+
+parameters‿x_assess ↩ PredictTestCase @
+
+predictions ← Predict parameters‿x_assess
+
+•Out "predictions:"
+•Show predictions
+
+•Out "x:"
+•Show ≢x
+•Out "y:"
+•Show ≢y
+
+parameters ↩ NNModel x‿y‿4‿1.2‿10000‿1
+predictions ↩ Predict parameters‿x
+•Out "Accuracy: "∾•Repr 100× (1⊑≢y)÷˜ (y Dot ⍉predictions) + (¬y) Dot ⍉¬predictions
