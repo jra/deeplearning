@@ -48,3 +48,44 @@ LinearForward ⇐ {
   z ← (w Dot a) + b
   z‿⟨a‿w‿b⟩
 }
+
+Sigmoid ⇐ {
+  cache ← 𝕩
+  a ← ÷1+⋆-𝕩
+  a‿cache
+}
+
+ReLU ⇐ {
+  cache ← 𝕩
+  a ← 0⌈𝕩
+  a‿cache
+}
+
+LinearActivationForward ⇐ {
+  aPrev‿w‿b‿activation:
+  z‿linearCache ← LinearForward aPrev‿w‿b
+  a‿activationCache ← Activation z
+  cache ← linearCache‿activationCache
+  a‿cache
+}
+
+LModelForward ⇐ {
+  x‿ws‿bs:
+  a ← x
+  cache ← @
+  caches ← ⟨⟩
+  {
+    w‿b:
+    a‿cache ↩ LinearActivationForward a‿w‿b‿reLU
+    caches ∾↩ ⋈cache
+  }¨ ¯1↓ ws⋈¨bs
+  a‿cache ↩ LinearActivationForward a‿(¯1⊑ws)‿(¯1⊑bs)‿sigmoid
+  caches ∾↩ ⋈cache
+  a‿caches
+}
+
+ComputeCost ⇐ {
+  al‿y:
+  m ← 1⊑≢y
+  cost ← -m÷˜+´⥊(y×⋆⁼al)+(¬y)×⋆⁼¬al
+}
