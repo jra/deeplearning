@@ -69,15 +69,20 @@ TanH ← { (1-˜⋆2×𝕩) ÷ 1+⋆2×𝕩 }
 #ReLU ← { 𝕩⌈0 }
 #ReLULeaky ← { 𝕩⌈0.01×𝕩 }
 
-⟨Dot⟩ ← •Import "../../w2/02-LogisticRegressionWithANeuralNetworkMindset/numb.bqn"
+⟨Dot⟩ ← •Import "../../../libs/numb.bqn"
 
 ForwardPropagation ⇐ {
   x‿⟨w1, b1, w2, b2⟩:
   {
-    z1⇐(⥊b1) + w1 Dot x  # TODO better way to broadcast?
-    a1⇐Tanh¨ z1
-    z2⇐(⥊b2) + w2 Dot a1
-    a2⇐Sigmoid¨ z2
+    # I'd use ⊏˘ or ≍⁼˘ to remove an extra trailing axis from a column vector.
+    # Note that +˝∘×⎉1‿∞ doesn't require any special casing for lists. It treats lists as row vectors on the left, or column vectors on the right.
+    # I think (m +˝∘×⎉1‿∞ x) + b should work whether x is a list or n×1 column, if b is a list.
+    #  treat vectors as lists and rearrange my thinking/equations
+    # Yeah. I tend to think it's the matrix product that's confusing. What it does is to pair the last axis of 𝕨 with the first axis of 𝕩. That shared axis gets reduced out, and any other axes (none in the case of a list) go into the result, in order.
+    z1 ⇐ b1 ⥊⊸+ w1 Dot x  # TODO better way to broadcast?
+    a1 ⇐ Tanh¨ z1
+    z2 ⇐ b2 ⥊⊸+ w2 Dot a1
+    a2 ⇐ Sigmoid¨ z2
   }
 }
 

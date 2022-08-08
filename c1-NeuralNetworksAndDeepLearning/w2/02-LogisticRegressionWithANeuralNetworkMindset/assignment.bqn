@@ -56,6 +56,10 @@ train_set_x ← train_set_x_flatten ÷ 255
 test_set_x ← test_set_x_flatten ÷ 255
 
 Sigmoid ← { ÷1+⋆-𝕩 }
+#TanH ← { (1-˜⋆2×𝕩) ÷ 1+⋆2×𝕩 }
+TanH ← { •math.tanh }
+ReLU ← { 𝕩⌈0 }
+ReLULeaky ← { 𝕩⌈0.01×𝕩 }
 
 •Out "Sigmoid "∾(•Repr 0‿2)∾" = "∾•Repr Sigmoid 0‿2
 
@@ -67,7 +71,7 @@ tw‿tb ← InitializeWithZeros tdim
 •Out "tw = "∾•Repr tw
 •Out "tb = "∾•Repr tb
 
-numb ← •Import "numb.bqn"
+numb ← •Import "../../../libs/numb.bqn"
 
 Propagate ← {
   w‿b‿x‿y:

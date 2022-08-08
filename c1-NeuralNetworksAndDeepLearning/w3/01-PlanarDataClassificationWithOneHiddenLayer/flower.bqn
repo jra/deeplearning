@@ -1,5 +1,5 @@
 nn ← •Import "nn-1layer.bqn"
-⟨Dot⟩ ← •Import "../../w2/02-LogisticRegressionWithANeuralNetworkMindset/numb.bqn"
+⟨Dot⟩ ← •Import "../../../libs/numb.bqn"
 
 LoadPlanarDataset ← {
   ·:
