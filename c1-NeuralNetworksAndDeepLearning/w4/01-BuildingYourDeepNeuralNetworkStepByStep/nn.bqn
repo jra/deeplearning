@@ -24,12 +24,11 @@ Normal ⇐ {
 InitializeParameters ⇐ {
   nx‿nh‿ny:
   rand ← •MakeRand 0
-  parameters ← {
-    w1 ⇐ nh‿nx Normal rand
-    b1 ⇐ nh⥊0
-    w2 ⇐ ny‿nh Normal rand
-    b2 ⇐ ny⥊0
-  }
+  w1 ← nh‿nx Normal rand
+  b1 ← nh⥊0
+  w2 ← ny‿nh Normal rand
+  b2 ← ny⥊0
+  parameters ← ⟨w1‿b1, w2‿b2⟩
 }
 
 InitializeParametersDeep ⇐ {
@@ -37,16 +36,21 @@ InitializeParametersDeep ⇐ {
   rand ← •MakeRand 0
   ws ← (Normal⟜rand)¨<˘⌽˘2↕ns
   bs ← ⥊⟜0¨ 1↓ns
-  ws‿bs
+  ws⋈¨bs
 }
 
-⟨Dot⟩ ← •Import "../../../libs/numb.bqn"
+#⟨Dot⟩ ← •Import "../../../libs/numb.bqn"
+Dot ← {
+  1≡⊑≠𝕨? ≍+´ (⥊𝕨) × <˘ 𝕩;
+  1≡1⊑≢𝕩? (≠𝕨)‿1⥊ (+´(⥊𝕩)⊸×)˘𝕨;
+  𝕨 +˝∘×⎉1‿∞ 𝕩
+}
 
 LinearForward ⇐ {
   a‿w‿b:
   # a is m×n, n is number of examples
   z ← (w Dot a) + b
-  cache ← ⟨a‿w‿b⟩
+  cache ← a‿w‿b
   z‿cache
 }
 
@@ -74,7 +78,7 @@ LinearActivationForward ⇐ {
 }
 
 LModelForward ⇐ {
-  x‿ws‿bs:
+  x‿ps:
   a ← x
   cache ← @
   caches ← ⟨⟩
@@ -82,8 +86,9 @@ LModelForward ⇐ {
     w‿b:
     a‿cache ↩ LinearActivationForward a‿w‿b‿reLU
     caches ∾↩ ⋈cache
-  }¨ ¯1↓ ws⋈¨bs
-  a‿cache ↩ LinearActivationForward a‿(¯1⊑ws)‿(¯1⊑bs)‿sigmoid
+  }¨ ¯1↓ps
+  w‿b ← ¯1⊑ps
+  a‿cache ↩ LinearActivationForward a‿w‿b‿sigmoid
   # caches: [ [ [a w b], z ], [ [a w b], z ], ... ]
   caches ∾↩ ⋈cache
   a‿caches
@@ -92,6 +97,8 @@ LModelForward ⇐ {
 ComputeCost ⇐ {
   al‿y:
   m ← 1⊑≢y
+  #•Show al
+  •Show +´⥊(y×⋆⁼al)+(¬y)×⋆⁼¬al
   cost ← -m÷˜+´⥊(y×⋆⁼al)+(¬y)×⋆⁼¬al
 }
 
@@ -118,9 +125,6 @@ ReLUBackward ⇐ {
   # cache: z
   da‿cache:
   z ← cache
-  •Out "ReLUBackward"
-  •Show da
-  •Show z
   dz ← (z>0) × da
 }
 
