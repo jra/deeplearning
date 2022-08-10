@@ -24,9 +24,9 @@ Normal ⇐ {
 InitializeParameters ⇐ {
   nx‿nh‿ny:
   rand ← •MakeRand 0
-  w1 ← nh‿nx Normal rand
+  w1 ← 0.01 × nh‿nx Normal rand
   b1 ← nh⥊0
-  w2 ← ny‿nh Normal rand
+  w2 ← 0.01 × ny‿nh Normal rand
   b2 ← ny⥊0
   parameters ← ⟨w1‿b1, w2‿b2⟩
 }
@@ -34,17 +34,17 @@ InitializeParameters ⇐ {
 InitializeParametersDeep ⇐ {
   𝕊 ns:  # output size of each layer: input, hiddens, output
   rand ← •MakeRand 0
-  ws ← (Normal⟜rand)¨<˘⌽˘2↕ns
+  ws ← 0.01 × (Normal⟜rand)¨<˘⌽˘2↕ns
   bs ← ⥊⟜0¨ 1↓ns
   ws⋈¨bs
 }
 
-#⟨Dot⟩ ← •Import "../../../libs/numb.bqn"
-Dot ← {
-  1≡⊑≠𝕨? ≍+´ (⥊𝕨) × <˘ 𝕩;
-  1≡1⊑≢𝕩? (≠𝕨)‿1⥊ (+´(⥊𝕩)⊸×)˘𝕨;
-  𝕨 +˝∘×⎉1‿∞ 𝕩
-}
+⟨Dot⟩ ← •Import "../../../libs/numb.bqn"
+#Dot ← {
+#  1≡⊑≠𝕨? ≍+´ (⥊𝕨) × <˘ 𝕩;
+#  1≡1⊑≢𝕩? (≠𝕨)‿1⥊ (+´(⥊𝕩)⊸×)˘𝕨;
+#  𝕨 +˝∘×⎉1‿∞ 𝕩
+#}
 
 LinearForward ⇐ {
   a‿w‿b:
@@ -97,8 +97,6 @@ LModelForward ⇐ {
 ComputeCost ⇐ {
   al‿y:
   m ← 1⊑≢y
-  #•Show al
-  •Show +´⥊(y×⋆⁼al)+(¬y)×⋆⁼¬al
   cost ← -m÷˜+´⥊(y×⋆⁼al)+(¬y)×⋆⁼¬al
 }
 

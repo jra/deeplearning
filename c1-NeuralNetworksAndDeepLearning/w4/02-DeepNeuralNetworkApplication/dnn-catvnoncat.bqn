@@ -11,8 +11,8 @@ test_x_orig ← @ -˜ ReadTestX ⟨⟩
 test_y ← 1‿∘⥊ ReadTestY ⟨⟩
 classes ← ReadTestListClasses ⟨⟩
 
-#index ← 25
-index ← 208
+index ← 25
+#index ← 208
 •Out "y = "∾(•Repr index⊑⊏train_y)∾", it's a '"∾((index⊑⊏train_y)⊑classes)∾"' picture."
 ImageWrite ← {
   # write image to file:
@@ -50,8 +50,21 @@ test_x_flatten ← ⍉ (≠test_x_orig)‿∘ ⥊ test_x_orig
 train_x ← train_x_flatten ÷ 255
 test_x ← test_x_flatten ÷ 255
 
-•Out "train_x shape: "∾•Repr ≢train_x
-•Out "test_x shape: "∾•Repr ≢test_x
+ReportArray ← {
+  nm‿ar:
+  n ← ≠⥊ar
+  mean ← (+´÷≠)⥊ar
+  {𝕤
+    •Show mean
+    •Show mean - ar
+    •Show ⋆⟜2 mean - ar
+  }⍟(n<0) @
+  stdv ← √ ÷⟜n +´ ⥊ ⋆⟜2 mean - ar
+  •Out nm∾": shape: "∾(•Repr ≢ar)∾" mean: "∾(•Repr mean)∾" stdv: "∾(•Repr stdv)
+}
+
+ReportArray "train_x"‿train_x
+ReportArray "train_y"‿train_y
 
 n_x ← ⊑≢train_x  # 12288 num_px * num_px * 3
 n_h ← 7
@@ -64,27 +77,21 @@ TwoLayerModel ← {
   x‿y‿layers_dims‿learning_rate‿num_iterations‿print_cost:
   costs ← @
   m ← 1⊑≢x
-  parameters ← nn.InitializeParameters layers_dims
+  #parameters ← nn.InitializeParameters layers_dims
+  parameters ← nn.InitializeParametersDeep layers_dims
+  #w1i ← 0⊑0⊑parameters
+  #w2i ← 0⊑1⊑parameters
+  #ReportArray "w1i"‿w1i
+  #ReportArray "w2i"‿w2i
   i ← 0
   {𝕤
     ⟨w1‿b1, w2‿b2⟩ ← parameters
-    •Show ⊏˘w1
-    •Show b1
-    •Show w2
-    •Show b2
-    •Show 8↑⊏˘x
-    •Show 8↑¯1⊏˘x
     a1‿cache1 ← nn.LinearActivationForward x‿w1‿b1‿nn.reLU
-    •Show ⊏˘a1
-    •Show 1⊏˘a1
-    •Show ¯1⊏˘a1
     a2‿cache2 ← nn.LinearActivationForward a1‿w2‿b2‿nn.sigmoid
-    •Show 8↑⊏a2
-    •Show ¯8↑⊏a2
     cost ← nn.ComputeCost a2‿y
     da2 ← - (y÷a2) - (¬y)÷¬a2
     da1‿dw2‿db2 ← nn.LinearActivationBackward da2‿cache2‿nn.sigmoidBackward
-    da0‿dw1‿db1 ← nn.LinearActivationBackward da1‿cache1‿nn.sigmoidBackward
+    da0‿dw1‿db1 ← nn.LinearActivationBackward da1‿cache1‿nn.reluBackward
     grads ← ⟨⟨⟩‿dw1‿db1, ⟨⟩‿dw2‿db2⟩
     parameters ↩ nn.UpdateParameters parameters‿grads‿learning_rate
     {𝕤
@@ -96,5 +103,5 @@ TwoLayerModel ← {
   parameters
 }
 
-parameters ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿1‿1
-#parameters ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿2500‿1
+#parameters ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿1‿1
+parameters ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿2500‿1
