@@ -75,7 +75,7 @@ nn ← •Import "../01-BuildingYourDeepNeuralNetworkStepByStep/nn.bqn"
 
 TwoLayerModel ← {
   x‿y‿layers_dims‿learning_rate‿num_iterations‿print_cost:
-  costs ← @
+  costs ← ⟨⟩
   m ← 1⊑≢x
   #parameters ← nn.InitializeParameters layers_dims
   parameters ← nn.InitializeParametersDeep layers_dims
@@ -112,8 +112,6 @@ ser ← •Import "serial.bqn"
 parameters ← ser.Deserialize 8‿8•bit._cast •file.Bytes "parameters-1"
 costs ← ser.Deserialize 8‿8•bit._cast •file.Bytes "costs-1"
 
-costs ↩ 1↓costs
-
 Predict ← {
   x‿y‿ps:
   m ← 1⊑≢y
@@ -130,3 +128,62 @@ predictions_test ← Predict test_x‿test_y‿parameters
 iters ← 100×↕≠costs
 ics ← ⍉iters≍costs
 "costs-1.csv" •file.Lines ⟨"iters,cost"⟩∾{(•Repr 0⊑𝕩)∾","∾•Repr 1⊑𝕩}¨<˘ics
+
+#
+# 5-Layer NN
+#
+
+InitializeParametersRef ← {
+  𝕊:
+  dir ← "reference/Deep Neural Network Application_ Image Classification"
+  w1‿b1‿w2‿b2‿w3‿b3‿w4‿b4 ← {
+    (⟨8‿'c',64⟩•bit._cast) •file.Bytes dir∾"/"∾𝕩
+  }¨ "W1"‿"b1"‿"W2"‿"b2"‿"W3"‿"b3"‿"W4"‿"b4"
+  w1 ∘‿12288⊸⥊↩
+  w2 ∘‿20⊸⥊↩
+  w3 ∘‿7⊸⥊↩
+  w4 ∘‿5⊸⥊↩
+  ⟨w1‿b1, w2‿b2, w3‿b3, w4‿b4⟩
+}
+
+#⟨w1y‿b1y, w2y‿b2y, w3y‿b3y, w4y‿b4y⟩ ← InitializeParametersRef @
+
+layers_dims ↩ 12288‿20‿7‿5‿1
+
+#⟨w1y‿b1y, w2y‿b2y, w3y‿b3y, w4y‿b4y⟩ ↩ nn.InitializeParametersDeep layers_dims
+
+LLayerModel ← {
+  x‿y‿layers_dims‿learning_rate‿num_iterations‿print_cost:
+  costs ← ⟨⟩
+  parameters ← nn.InitializeParametersDeep layers_dims
+  #parameters ← InitializeParametersRef @
+  i ← 0
+  {𝕤
+    aL‿caches ← nn.LModelForward x‿parameters
+    cost ← nn.ComputeCost aL‿y
+    grads ← nn.LModelBackward aL‿y‿caches
+    parameters ↩ nn.UpdateParameters parameters‿grads‿learning_rate
+    {𝕤
+      costs ∾↩ cost
+      {𝕤, •Out "Cost after iteration "∾(•Repr i)∾": "∾(•Repr cost) }⍟print_cost @
+    }⍟(0=100|i) @
+    i +↩ 1
+  }⍟num_iterations @
+  parameters‿costs
+}
+
+parameters‿costs ↩ LLayerModel train_x‿train_y‿layers_dims‿0.0075‿1200‿1
+#parameters‿costs ↩ LLayerModel train_x‿train_y‿layers_dims‿0.0075‿2500‿1
+#parameters‿costs ↩ LLayerModel train_x‿train_y‿layers_dims‿0.0075‿200‿1
+"parameters-2" •file.Bytes ⟨8,8‿'c'⟩ •bit._cast ser.Serialize parameters
+"costs-2" •file.Bytes ⟨8,8‿'c'⟩ •bit._cast ser.Serialize costs
+
+#parameters ↩ ser.Deserialize 8‿8•bit._cast •file.Bytes "parameters-2"
+#costs ↩ ser.Deserialize 8‿8•bit._cast •file.Bytes "costs-2"
+
+predictions_train ↩ Predict train_x‿train_y‿parameters
+predictions_test ↩ Predict test_x‿test_y‿parameters
+
+iters ↩ 100×↕≠costs
+ics ↩ ⍉iters≍costs
+"costs-2.csv" •file.Lines ⟨"iters,cost"⟩∾{(•Repr 0⊑𝕩)∾","∾•Repr 1⊑𝕩}¨<˘ics

@@ -44,6 +44,7 @@ ps ← nn.InitializeParameters 3‿2‿1
 
 ps ↩ nn.InitializeParametersDeep 5‿4‿3
 
+•Out •Repr ps
 ! 2=≠ps
 ! 4‿5≡≢0⊑0⊑ps  # w1
 ! (≠=≠∘⍷)0⊑0⊑ps  # w1 all unique
@@ -332,19 +333,32 @@ caches ↩ ⟨
 ⟩
 
 truth ↩ {
+  da0 ⇐ [[ 0.0        ,  0.52257901]
+         [ 0.0        , -0.3269206 ]
+         [ 0.0        , -0.32070404]
+         [ 0.0        , -0.74079187]]
   dW1 ⇐ [[0.41010002, 0.07807203, 0.13798444, 0.10502167]
          [0.0       , 0.0       , 0.0       , 0.0       ]
          [0.05283652, 0.01005865, 0.01777766, 0.0135308 ]]
-  db1 ⇐ [[-0.22007063]
-         [ 0.0       ]
-         [-0.02835349]]
+  db1 ⇐ ⟨-0.22007063
+          0.0
+         -0.02835349⟩
   dA1 ⇐ [[ 0.12913162, -0.44014127]
          [-0.14175655,  0.48317296]
          [ 0.01663708, -0.05670698]]
+  dW2 ⇐ [[-0.39202432, -0.13325855, -0.04601089]]
+  db2 ⇐ ⟨ 0.15187861⟩
 }
 
 grads ← nn.LModelBackward aL‿yAssess‿caches
 
+⟨da0x‿dw1x‿db1x, da1x‿dw2x‿db2x⟩ ← grads
+! 6 Close truth.da0‿da0x
+! 6 Close truth.dw1‿dw1x
+! 5 Close truth.db1‿db1x
+! 6 Close truth.da1‿da1x
+! 6 Close truth.dw2‿dw2x
+! 6 Close truth.db2‿db2x
 #•Out "0⊑grads"
 #•Show 0⊑grads
 #•Out "1⊑grads"

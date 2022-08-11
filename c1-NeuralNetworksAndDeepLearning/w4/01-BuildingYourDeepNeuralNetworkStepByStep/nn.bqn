@@ -34,7 +34,8 @@ InitializeParameters ⇐ {
 InitializeParametersDeep ⇐ {
   𝕊 ns:  # output size of each layer: input, hiddens, output
   rand ← •MakeRand 0
-  ws ← 0.01 × (Normal⟜rand)¨<˘⌽˘2↕ns
+  #ws ← 0.01 × (Normal⟜rand)¨<˘⌽˘2↕ns
+  ws ← (Normal⟜rand¨<˘⌽˘2↕ns) ÷ √¯1↓ns
   bs ← ⥊⟜0¨ 1↓ns
   ws⋈¨bs
 }
@@ -81,11 +82,10 @@ LModelForward ⇐ {
   x‿ps:
   a ← x
   cache ← @
-  caches ← ⟨⟩
-  {
+  caches ← {
     w‿b:
     a‿cache ↩ LinearActivationForward a‿w‿b‿reLU
-    caches ∾↩ ⋈cache
+    cache
   }¨ ¯1↓ps
   w‿b ← ¯1⊑ps
   a‿cache ↩ LinearActivationForward a‿w‿b‿sigmoid
@@ -136,17 +136,14 @@ LinearActivationBackward ⇐ {
 
 LModelBackward ⇐ {
   aL‿y‿caches:
-  grads ← ⟨⟩
   cache ← ¯1⊑caches
-  •Out "cache last"
-  •Show cache
-  daL ← - (y÷aL) - (¬y)÷¬al
+  daL ← - (y÷aL) - (¬y)÷¬aL
   da‿dw‿db ← LinearActivationBackward daL‿cache‿SigmoidBackward
-  grads ∾↩ ⋈da‿dw‿db
-  {
+  grads ← ⟨da‿dw‿db⟩
+  grads ∾↩ {
     𝕊 cache:
     da‿dw‿db ↩ LinearActivationBackward da‿cache‿ReLUBackward
-    grads ∾↩ ⋈da‿dw‿db
+    da‿dw‿db
   }¨ ⌽¯1↓caches
   ⌽grads
 }
