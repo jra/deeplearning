@@ -105,22 +105,14 @@ TwoLayerModel ← {
 
 ser ← •Import "serial.bqn"
 
-#parameters‿costs ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿200‿1
-parameters‿costs ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿2500‿1
-⟨w1x‿b1x, w2x‿b2x⟩ ← parameters
-•Show ≢parameters
-•Show ≢w1x
-•Show ≢b1x
-•Show ≢w2x
-•Show ≢b2x
-•Out "serializing parameters"
-"parameters-1" •file.Bytes ⟨8,'c'‿8⟩ ser.Serialize parameters
-•Out "serializing costs"
-"costs-1" •file.Bytes ⟨8,'c'‿8⟩ ser.Serialize costs
-•Out "done serializing"
+#parameters‿costs ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿2500‿1
+#"parameters-1" •file.Bytes ⟨8,8‿'c'⟩ •bit._cast ser.Serialize parameters
+#"costs-1" •file.Bytes ⟨8,8‿'c'⟩ •bit._cast ser.Serialize costs
 
-#parameters ← ser.Deserialize 8‿8•bit._cast •file.Bytes "parameters-1"
-#costs ← ser.Deserialize 8‿8•bit._cast •file.Bytes "costs-1"
+parameters ← ser.Deserialize 8‿8•bit._cast •file.Bytes "parameters-1"
+costs ← ser.Deserialize 8‿8•bit._cast •file.Bytes "costs-1"
+
+costs ↩ 1↓costs
 
 Predict ← {
   x‿y‿ps:
@@ -128,33 +120,13 @@ Predict ← {
   n ← ≠parameters
   probas‿caches ← nn.LModelForward x‿ps
   p ← probas > 0.5
-  •Out "Accuracy: "∾•Repr m÷˜ +´ p=y
+  •Out "Accuracy: "∾•Repr m÷˜ +´ ⥊ p=y
   p
 }
-#DumpParameters ← {
-#  path‿ps:
-#  path •file.Bytes •Repr ps
-##  dir‿ps:
-##  i ← 0
-##  ⟨⟨7‿12288, 7⟩, ⟨1‿7, 1⟩⟩
-##  meta ← •Repr ≢¨¨ ps
-##  (dir∾"/meta") •file.Lines meta
-##  {
-##    w‿b:
-##    (dir∾"/"∾(•Repr i)∾"0") •File.Lines •Repr ⥊w
-##    (dir∾"/"∾(•Repr i)∾"1") •File.Lines •Repr b
-##    i +↩ 1
-##  }¨ ps
-#}
-#
-#LoadParameters ← {
-#  path:
-#  path •file.Bytes
-#}
 
-#predictions_train ← nn.Predict train_x‿train_y‿parameters
-#predictions_test ← nn.Predict test_x‿test_y‿parameters
+predictions_train ← Predict train_x‿train_y‿parameters
+predictions_test ← Predict test_x‿test_y‿parameters
 
-#iters ← 100×↕≠costs
-#ics ← ⍉iters≍costs
-#"costs-1.csv" •file.Lines ⟨"iters,cost"⟩∾{(•Repr 0⊑𝕩)∾","∾•Repr 1⊑𝕩}¨<˘ics
+iters ← 100×↕≠costs
+ics ← ⍉iters≍costs
+"costs-1.csv" •file.Lines ⟨"iters,cost"⟩∾{(•Repr 0⊑𝕩)∾","∾•Repr 1⊑𝕩}¨<˘ics

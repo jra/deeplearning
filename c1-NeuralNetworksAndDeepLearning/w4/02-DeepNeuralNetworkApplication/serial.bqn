@@ -3,16 +3,16 @@ eltypeWidth ← ⟨1,1,2,4,8,1,2,4⟩
 
 SStep ← •Type◶⟨
   {
-    x ← •internal.Squeeze 𝕩
+    𝕩 •internal.Squeeze↩
     eltype ← •internal.ElType𝕩
-    ⟨
+    ×∘≠¨⊸/ ⟨
       ⟨0, eltype⟩
-      32‿8•bit._cast ⋈=x
-      64‿8•bit._cast ≢x
+      32‿8•bit._cast ⋈=𝕩
+      64‿8•bit._cast ≢𝕩
       {
-        eltype=8? SStep¨ ⥊x;
-        ⟨eltype⊑eltype2bit, 8⟩•bit._cast (8×·⌈≠÷8˙)⊸↑⍟(0=eltype) ⥊x
-      }
+        eltype=8? SStep¨ ⥊𝕩;
+        ⟨eltype⊑eltype2bit, 8⟩•bit._cast (8×·⌈≠÷8˙)⊸↑⍟(0=eltype) ⥊𝕩
+      }𝕩
     ⟩
   }
   { ⟨⟨1⟩, 64‿8•bit._cast⋈𝕩⟩ }
@@ -25,7 +25,7 @@ SStep ← •Type◶⟨
 
 Serialize ⇐ {
   lists ← ⟨⟩
-  {0=•Type⊑𝕩? 𝕊¨𝕩; lists∾↩<𝕩} SStep 𝕩
+  {0=•Type⊑𝕩? 𝕊¨𝕩; lists∾↩<𝕩 ⋄ 1} SStep 𝕩
   ∾lists
 }
 Deserialize ⇐ {
