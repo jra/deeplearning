@@ -100,8 +100,61 @@ TwoLayerModel ← {
     }⍟(0=100|i) @
     i +↩ 1
   }⍟num_iterations @
-  parameters
+  parameters‿costs
 }
 
-#parameters ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿1‿1
-parameters ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿2500‿1
+ser ← •Import "serial.bqn"
+
+#parameters‿costs ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿200‿1
+parameters‿costs ← TwoLayerModel train_x‿train_y‿layers_dims‿0.0075‿2500‿1
+⟨w1x‿b1x, w2x‿b2x⟩ ← parameters
+•Show ≢parameters
+•Show ≢w1x
+•Show ≢b1x
+•Show ≢w2x
+•Show ≢b2x
+•Out "serializing parameters"
+"parameters-1" •file.Bytes ⟨8,'c'‿8⟩ ser.Serialize parameters
+•Out "serializing costs"
+"costs-1" •file.Bytes ⟨8,'c'‿8⟩ ser.Serialize costs
+•Out "done serializing"
+
+#parameters ← ser.Deserialize 8‿8•bit._cast •file.Bytes "parameters-1"
+#costs ← ser.Deserialize 8‿8•bit._cast •file.Bytes "costs-1"
+
+Predict ← {
+  x‿y‿ps:
+  m ← 1⊑≢y
+  n ← ≠parameters
+  probas‿caches ← nn.LModelForward x‿ps
+  p ← probas > 0.5
+  •Out "Accuracy: "∾•Repr m÷˜ +´ p=y
+  p
+}
+#DumpParameters ← {
+#  path‿ps:
+#  path •file.Bytes •Repr ps
+##  dir‿ps:
+##  i ← 0
+##  ⟨⟨7‿12288, 7⟩, ⟨1‿7, 1⟩⟩
+##  meta ← •Repr ≢¨¨ ps
+##  (dir∾"/meta") •file.Lines meta
+##  {
+##    w‿b:
+##    (dir∾"/"∾(•Repr i)∾"0") •File.Lines •Repr ⥊w
+##    (dir∾"/"∾(•Repr i)∾"1") •File.Lines •Repr b
+##    i +↩ 1
+##  }¨ ps
+#}
+#
+#LoadParameters ← {
+#  path:
+#  path •file.Bytes
+#}
+
+#predictions_train ← nn.Predict train_x‿train_y‿parameters
+#predictions_test ← nn.Predict test_x‿test_y‿parameters
+
+#iters ← 100×↕≠costs
+#ics ← ⍉iters≍costs
+#"costs-1.csv" •file.Lines ⟨"iters,cost"⟩∾{(•Repr 0⊑𝕩)∾","∾•Repr 1⊑𝕩}¨<˘ics
